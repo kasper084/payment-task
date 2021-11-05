@@ -81,7 +81,7 @@ class PaymentService {
     Validated
       .cond(
         DB.payments.exists(_.coinCurrency == currency),
-        DB.payments.find(_.coinCurrency == currency).toList,
+        DB.payments.filter(_.coinCurrency == currency),
         ErrorInfo("CurrencyNotExist")
       ).toEither
   }

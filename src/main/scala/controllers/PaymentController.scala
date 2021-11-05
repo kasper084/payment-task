@@ -35,4 +35,14 @@ class PaymentController(paymentService: PaymentService) {
     AkkaHttpServerInterpreter().toRoute(paymentIDEndpoint) { id =>
       Future.successful(paymentService.isPaymentExists(id).map(_.toPaymentResponse))
     }
+
+  private val paymentListByCurrency: Endpoint[String, ErrorInfo, List[PaymentResponse], Any] = {
+    endpoint.get.in("currency" / query[String]("id")).out(jsonBody[List[PaymentResponse]]).errorOut(jsonBody[ErrorInfo])
+
+  }
+
+  val paymentListRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(paymentListByCurrency) { currency =>
+      Future.successful(paymentService.listOfPayments(currency).map(_.map(_.toPaymentResponse)))
+    }
 }
