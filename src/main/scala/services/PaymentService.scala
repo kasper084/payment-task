@@ -80,8 +80,8 @@ class PaymentService {
 
     Validated
       .cond(
-        DB.payments.exists(_.coinCurrency == currency),
-        DB.payments.filter(_.coinCurrency == currency),
+        DB.payments.exists(_.fiatCurrency == currency),
+        DB.payments.filter(_.fiatCurrency == currency),
         ErrorInfo("CurrencyNotExist")
       ).toEither
   }
