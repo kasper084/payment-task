@@ -37,7 +37,8 @@ class PaymentController(paymentService: PaymentService) {
     }
 
   private val paymentListByCurrency: Endpoint[String, ErrorInfo, List[PaymentResponse], Any] = {
-    endpoint.get.in("currency" / query[String]("id")).out(jsonBody[List[PaymentResponse]]).errorOut(jsonBody[ErrorInfo])
+    endpoint.get.in("payment").in(query[String]("currency"))
+      .out(jsonBody[List[PaymentResponse]]).errorOut(jsonBody[ErrorInfo])
 
   }
 
