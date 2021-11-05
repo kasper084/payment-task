@@ -1,9 +1,9 @@
 package models
 
-import models.PaymentRequest.{BigDecimalJsonFormat, jsonFormat5}
+import models.PaymentRequest.{BigDecimalJsonFormat, LongJsonFormat, jsonFormat5}
 
-case class StatsResponse(paymentsCount: BigDecimal,
-                         paymentsCountPerFiatCurrency: BigDecimal,
+case class StatsResponse(paymentsCount: Long,
+                         paymentsCountPerFiatCurrency: Long,
                          paymentsSumFiatAmount: BigDecimal,
                          paymentsSumCryptoAmount: BigDecimal,
                          paymentsEURValueSum: BigDecimal)

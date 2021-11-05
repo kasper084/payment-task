@@ -13,6 +13,7 @@ class PaymentService {
   private val db = DB
   private val paymentConf = ApiConf.apiConf.api.payments
 
+  //if currency exists, min, max
   def addPayment(paymentRequest: PaymentRequest): Either[ErrorInfo, Payment] = {
 
     import java.time.Duration._
@@ -64,6 +65,8 @@ class PaymentService {
     (currencyCondition andThen amountCondition).toEither
   }
 
+
+  //find by id and list by currency
   def isPaymentExists(id: String): Either[ErrorInfo, Payment] = {
 
     val uuid = UUID.fromString(id)
@@ -85,5 +88,51 @@ class PaymentService {
         ErrorInfo("CurrencyNotExist")
       ).toEither
   }
+
+  //stats
+
+  def countAllPayments: Either[ErrorInfo, Long] = {
+
+    Validated.cond(
+      DB.payments.nonEmpty,
+      DB.payments.size.toLong,
+      ErrorInfo("NoStatsError")
+    ).toEither
+  }
+
+  def paymentsCountPerFiatCurrency(currency: String): Either[ErrorInfo, Long] = {
+    Validated
+      .cond(
+        DB.payments.exists(_.fiatCurrency == currency),
+        DB.payments.count(_.fiatCurrency == currency).toLong,
+        ErrorInfo("CurrencyNotExist")
+      ).toEither
+  }
+
+/*  def paymentsSumFiatAmount(amount: BigDecimal): Either[ErrorInfo, BigDecimal] = {
+
+    EUR sum + USD sum / ex.rate
+
+    Validated
+      .cond(
+        DB.payments.exists(_.fiatAmount == amount),
+        DB.payments.filter(_.fiatAmount == amount),
+        ErrorInfo("NoOperationsWithSuchAmount")
+      ).toEither
+  }*/
+
+// def paymentsSumCryptoAmount
+
+  def paymentsEURValueSum: Either[ErrorInfo, BigDecimal] = {
+    val eur = "EUR"
+
+    Validated
+      .cond(
+        DB.payments.exists(_.fiatCurrency == eur),
+        DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum,
+        ErrorInfo("NoOperationsWithSuchAmount")
+      ).toEither
+  }
+
 
 }
