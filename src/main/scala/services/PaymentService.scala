@@ -20,7 +20,7 @@ class PaymentService {
     val currencyCondition = Validated.cond(
       DB.fiatCurrencies.contains(paymentRequest.fiatCurrency) && DB.cryptoCurrencies.contains(paymentRequest.coinCurrency),
       (),
-      ErrorInfo("CurrencyNotExisting")
+      ErrorInfo("CurrencyNotExist")
     )
 
     val amountCondition = (_: Unit) => {
@@ -57,11 +57,33 @@ class PaymentService {
 
           payment
         },
-        ErrorInfo("Min/Max Amount Error.")
+        ErrorInfo("MinMaxAmountError")
       )
     }
 
     (currencyCondition andThen amountCondition).toEither
+  }
+
+  def isPaymentExists(id: String): Either[ErrorInfo, Payment] = {
+
+    val uuid = UUID.fromString(id)
+
+    Validated.cond(
+      DB.payments.exists(_.id == uuid),
+      DB.payments.find(_.id == uuid).get,
+      ErrorInfo("PaymentNotExist")
+    ).toEither
+
+  }
+
+  def listOfPayments(currency: String): Either[ErrorInfo, List[Payment]] = {
+
+    Validated
+      .cond(
+        DB.payments.exists(_.coinCurrency == currency),
+        DB.payments.find(_.coinCurrency == currency).toList,
+        ErrorInfo("CurrencyNotExist")
+      ).toEither
   }
 
 }

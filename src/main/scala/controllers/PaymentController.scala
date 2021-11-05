@@ -26,4 +26,13 @@ class PaymentController(paymentService: PaymentService) {
         )
     }
 
+  private val paymentIDEndpoint: Endpoint[String, ErrorInfo, PaymentResponse, Any] = {
+    endpoint.get.in("payment" / path[String]).out(jsonBody[PaymentResponse]).errorOut(jsonBody[ErrorInfo])
+
+  }
+
+  val paymentIDRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(paymentIDEndpoint) { id =>
+      Future.successful(paymentService.isPaymentExists(id).map(_.toPaymentResponse))
+    }
 }
