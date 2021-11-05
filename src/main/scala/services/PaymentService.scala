@@ -57,13 +57,11 @@ class PaymentService {
 
           payment
         },
-        ErrorInfo("Min/Max EUR Error.")
+        ErrorInfo("Min/Max Amount Error.")
       )
     }
 
     (currencyCondition andThen amountCondition).toEither
   }
-
-  def some = ???
 
 }
