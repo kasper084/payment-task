@@ -90,43 +90,42 @@ class PaymentService {
   }
 
   //stats
-/*
+
   def returnStats(currency: String): Either[ErrorInfo, StatsResponse] = {
 
+    val countAllPayments =
+      DB.payments.size.toLong
 
-    val countAllPayments = {
+    val countPerFiatCurrency =
+      DB.payments.count(_.fiatCurrency == currency).toLong
 
-      Validated.cond(
-        DB.payments.nonEmpty,
-        DB.payments.size.toLong,
-        ErrorInfo("NoStatsError")
-      ).toEither
+    val sumFiatAmount =
+      DB.payments.filter(_.fiatCurrency == currency).map(_.fiatAmount).sum
+
+    val sumCryptoAmount = {
+
+      val btc = "BTC"
+      DB.payments.filter(_.coinCurrency == btc).map(_.fiatAmount).sum
     }
 
-    val paymentsCountPerFiatCurrency = {
-      Validated
-        .cond(
-          DB.payments.exists(_.fiatCurrency == currency),
-          DB.payments.count(_.fiatCurrency == currency).toLong,
-          ErrorInfo("CurrencyNotExist")
-        ).toEither
-    }
-
-
-
-    val paymentsEURValueSum = {
+    val eurValueSum = {
       val eur = "EUR"
-
-      Validated
-        .cond(
-          DB.payments.exists(_.fiatCurrency == eur),
-          DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum,
-          ErrorInfo("NoOperationsWithEUR")
-        ).toEither
+      DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum
     }
 
+    val stats = StatsResponse(
+      paymentsCount = countAllPayments,
+      paymentsCountPerFiatCurrency = countPerFiatCurrency,
+      paymentsSumFiatAmount = sumFiatAmount,
+      paymentsSumCryptoAmount = sumCryptoAmount,
+      paymentsEURValueSum = eurValueSum)
 
-
-  }*/
+    Validated
+      .cond(
+        DB.payments.exists(_.fiatCurrency == currency),
+        stats,
+        ErrorInfo("NoSuchPayments")
+      ).toEither
+  }
 
 }
