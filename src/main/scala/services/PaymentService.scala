@@ -91,7 +91,7 @@ class PaymentService {
 
   //stats
 
-  def returnStats(currency: String): Either[ErrorInfo, StatsResponse] = {
+  def showStats(currency: String): Either[ErrorInfo, StatsResponse] = {
 
     val countAllPayments =
       DB.payments.size.toLong
@@ -105,7 +105,7 @@ class PaymentService {
     val sumCryptoAmount = {
 
       val btc = "BTC"
-      DB.payments.filter(_.coinCurrency == btc).map(_.fiatAmount).sum
+      DB.payments.filter(_.coinCurrency == btc).map(_.coinAmount).sum
     }
 
     val eurValueSum = {
@@ -113,7 +113,7 @@ class PaymentService {
       DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum
     }
 
-    val stats = StatsResponse(
+    val statsResponse = StatsResponse(
       paymentsCount = countAllPayments,
       paymentsCountPerFiatCurrency = countPerFiatCurrency,
       paymentsSumFiatAmount = sumFiatAmount,
@@ -123,8 +123,8 @@ class PaymentService {
     Validated
       .cond(
         DB.payments.exists(_.fiatCurrency == currency),
-        stats,
-        ErrorInfo("NoSuchPayments")
+        statsResponse,
+        ErrorInfo("NoStatsForSuchCurrency")
       ).toEither
   }
 

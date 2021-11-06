@@ -22,7 +22,8 @@ object App {
     val route = concat(
       paymentController.createNewPaymentRoute,
       paymentController.paymentIDRoute,
-      paymentController.paymentListRoute
+      paymentController.paymentListRoute,
+      paymentController.statsRoute
     )
 
     val bindingFuture = Http().newServerAt("localhost", 9007).bind(route)
