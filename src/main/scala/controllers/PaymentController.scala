@@ -2,7 +2,8 @@ package controllers
 
 import akka.http.scaladsl.server.Route
 import exceptions.Exception.ErrorInfo
-import models.{PaymentRequest, PaymentResponse}
+import models.PaymentRequest.LongJsonFormat
+import models.{PaymentRequest, PaymentResponse, StatsResponse}
 import services.PaymentService
 import sttp.tapir._
 import sttp.tapir.generic.auto._
@@ -13,17 +14,50 @@ import scala.concurrent.Future
 
 class PaymentController(paymentService: PaymentService) {
 
-  private val createNewPaymentEndpoint: Endpoint[PaymentRequest, ErrorInfo, PaymentResponse, Any] =
+  private val newPaymentEndpoint: Endpoint[PaymentRequest, ErrorInfo, PaymentResponse, Any] =
     endpoint.post.in("payment" / "new").in(jsonBody[PaymentRequest]).out(jsonBody[PaymentResponse]).errorOut(jsonBody[ErrorInfo])
 
-  def createNewPaymentRoute: Route =
-    AkkaHttpServerInterpreter().toRoute(createNewPaymentEndpoint) { paymentRequest =>
+  val createNewPaymentRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(newPaymentEndpoint) { paymentRequest =>
       Future
         .successful(
           paymentService
             .addPayment(paymentRequest)
             .map(_.toPaymentResponse)
         )
+    }
+
+  private val paymentIDEndpoint: Endpoint[String, ErrorInfo, PaymentResponse, Any] = {
+    endpoint.get.in("payment" / path[String]).out(jsonBody[PaymentResponse]).errorOut(jsonBody[ErrorInfo])
+
+  }
+
+  val paymentIDRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(paymentIDEndpoint) { id =>
+      Future.successful(paymentService.isPaymentExists(id).map(_.toPaymentResponse))
+    }
+
+  private val paymentListByCurrencyEndpoint: Endpoint[String, ErrorInfo, List[PaymentResponse], Any] = {
+    endpoint.get.in("payments").in(query[String]("currency"))
+      .out(jsonBody[List[PaymentResponse]]).errorOut(jsonBody[ErrorInfo])
+
+  }
+
+  val paymentListRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(paymentListByCurrencyEndpoint) { currency =>
+      Future.successful(paymentService.listOfPayments(currency).map(_.map(_.toPaymentResponse)))
+
+    }
+
+  private val statsEndpoint: Endpoint[String, ErrorInfo, StatsResponse, Any] = {
+    endpoint.get.in("payments" / "stats").in(query[String]("currency"))
+      .out(jsonBody[StatsResponse]).errorOut(jsonBody[ErrorInfo])
+
+  }
+
+  val statsRoute: Route =
+    AkkaHttpServerInterpreter().toRoute(statsEndpoint) { currency =>
+      Future.successful(paymentService.showStats(currency))
     }
 
 }
