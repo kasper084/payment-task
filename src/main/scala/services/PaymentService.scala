@@ -2,7 +2,7 @@ package services
 
 import cats.data.Validated
 import exceptions.Exception.ErrorInfo
-import models.{Payment, PaymentRequest}
+import models.{Payment, PaymentRequest, StatsResponse}
 import utils.{DB, MarketData}
 
 import java.time.LocalDateTime
@@ -85,54 +85,48 @@ class PaymentService {
       .cond(
         DB.payments.exists(_.fiatCurrency == currency),
         DB.payments.filter(_.fiatCurrency == currency),
-        ErrorInfo("CurrencyNotExist")
+        ErrorInfo("NoSuchPayments")
       ).toEither
   }
 
   //stats
+/*
+  def returnStats(currency: String): Either[ErrorInfo, StatsResponse] = {
 
-  def countAllPayments: Either[ErrorInfo, Long] = {
 
-    Validated.cond(
-      DB.payments.nonEmpty,
-      DB.payments.size.toLong,
-      ErrorInfo("NoStatsError")
-    ).toEither
-  }
+    val countAllPayments = {
 
-  def paymentsCountPerFiatCurrency(currency: String): Either[ErrorInfo, Long] = {
-    Validated
-      .cond(
-        DB.payments.exists(_.fiatCurrency == currency),
-        DB.payments.count(_.fiatCurrency == currency).toLong,
-        ErrorInfo("CurrencyNotExist")
+      Validated.cond(
+        DB.payments.nonEmpty,
+        DB.payments.size.toLong,
+        ErrorInfo("NoStatsError")
       ).toEither
-  }
+    }
 
-/*  def paymentsSumFiatAmount(amount: BigDecimal): Either[ErrorInfo, BigDecimal] = {
+    val paymentsCountPerFiatCurrency = {
+      Validated
+        .cond(
+          DB.payments.exists(_.fiatCurrency == currency),
+          DB.payments.count(_.fiatCurrency == currency).toLong,
+          ErrorInfo("CurrencyNotExist")
+        ).toEither
+    }
 
-    EUR sum + USD sum / ex.rate
 
-    Validated
-      .cond(
-        DB.payments.exists(_.fiatAmount == amount),
-        DB.payments.filter(_.fiatAmount == amount),
-        ErrorInfo("NoOperationsWithSuchAmount")
-      ).toEither
+
+    val paymentsEURValueSum = {
+      val eur = "EUR"
+
+      Validated
+        .cond(
+          DB.payments.exists(_.fiatCurrency == eur),
+          DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum,
+          ErrorInfo("NoOperationsWithEUR")
+        ).toEither
+    }
+
+
+
   }*/
-
-// def paymentsSumCryptoAmount
-
-  def paymentsEURValueSum: Either[ErrorInfo, BigDecimal] = {
-    val eur = "EUR"
-
-    Validated
-      .cond(
-        DB.payments.exists(_.fiatCurrency == eur),
-        DB.payments.filter(_.fiatCurrency == eur).map(_.fiatAmount).sum,
-        ErrorInfo("NoOperationsWithSuchAmount")
-      ).toEither
-  }
-
 
 }
